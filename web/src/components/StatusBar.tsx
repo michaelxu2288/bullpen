@@ -21,8 +21,6 @@ function Stat({ label, value }: { label: string; value: string | number }) {
  * deliberate: what is running, then what is connected, then how long.
  */
 export function StatusBar({ summary, streamStatus, error }: Props) {
-  const plane = summary?.context_plane;
-  const planeState = !plane?.attached ? "down" : plane.reachable ? "live" : "warn";
 
   return (
     <header className="status">
@@ -54,14 +52,6 @@ export function StatusBar({ summary, streamStatus, error }: Props) {
       )}
 
       <span className="status__spacer" />
-
-      <span className="stat">
-        <span className={`dot dot--${planeState}`} />
-        <span className="stat__label">plane</span>
-        <span className="stat__value">
-          {plane?.attached ? `${plane.slack_mcp || "?"}/${plane.vector_store || "?"}` : "detached"}
-        </span>
-      </span>
 
       <span className="stat">
         <span className={`dot dot--${streamStatus === "live" ? "live" : streamStatus === "down" ? "down" : "warn"}`} />

@@ -29,9 +29,9 @@ export function Rail({ active, counts, onSelect }: Props) {
         </button>
       ))}
       <p className="rail__note">
-        go control plane
+        bullpen
         <br />
-        bullpen control plane
+        master + workers
       </p>
     </nav>
   );

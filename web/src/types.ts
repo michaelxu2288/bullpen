@@ -1,5 +1,5 @@
 /**
- * Mirrors the Go DTOs in internal/api and internal/contextplane. Field names are
+ * Mirrors the Go DTOs in internal/httpapi. Field names are
  * the JSON tags on the Go side; keep both ends in lockstep.
  */
 
@@ -39,14 +39,6 @@ export interface Board {
   updated_at: string;
 }
 
-export interface PlaneSummary {
-  attached: boolean;
-  reachable: boolean;
-  url: string;
-  slack_mcp: string;
-  vector_store: string;
-  detail?: string;
-}
 
 export interface Summary {
   service: string;
@@ -60,7 +52,6 @@ export interface Summary {
   live: boolean;
   events: number;
   watchers: number;
-  context_plane: PlaneSummary | null;
   now: string;
 }
 
