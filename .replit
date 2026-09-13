@@ -1,0 +1,15 @@
+run = "go run . server --chaos"
+entrypoint = "main.go"
+modules = ["go-1.23"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "go build -o bullpen . && ./bullpen server --chaos"]
+build = ["sh", "-c", "go build -o bullpen ."]
+deploymentTarget = "autoscale"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

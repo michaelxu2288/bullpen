@@ -1,0 +1,30 @@
+# Binaries
+/bullpen
+*.exe
+*.out
+
+# Go
+bin/
+pkg/
+
+# Env
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Node / TypeScript context plane
+node_modules/
+*.tsbuildinfo
+npm-debug.log*
+
+# Built dashboard bundle (embedded at build time, not committed)
+# the built dashboard ships in the repo so Replit only needs Go
+
+# tsc must never emit next to the sources
+web/src/**/*.js
+web/dist/
