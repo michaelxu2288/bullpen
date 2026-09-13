@@ -26,10 +26,11 @@ reviewers, and cards that escalate go back to BACKLOG for someone else. Nothing
 on the board is placed by hand.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		addr, _ := cmd.Flags().GetString("addr")
-		// Replit hands the bound port in $PORT and routes the webview at it, so
-		// the flag default gives way to the environment when one is set.
+		// Hosts that hand the port in $PORT (Replit, Heroku, Cloud Run) also
+		// health-check it, so the environment wins over the flag default and the
+		// bind is spelled out rather than left to the empty host.
 		if port := os.Getenv("PORT"); port != "" && !cmd.Flags().Changed("addr") {
-			addr = ":" + port
+			addr = "0.0.0.0:" + port
 		}
 		serveUI, _ := cmd.Flags().GetBool("ui")
 		seedGoal, _ := cmd.Flags().GetString("seed")
@@ -49,15 +50,32 @@ on the board is placed by hand.`,
 		engine := newEngine()
 		h := httpapi.NewHandlers(engine).WithUI(serveUI)
 
+		// The listener comes up before the crew does. A health check on a cold
+		// autoscale container hits / within a second or two of exec, and booting
+		// workers, seeding the board and arming chaos all happen after the first
+		// byte is servable.
+		var run *httpapi.LiveRun
 		if live {
-			run := httpapi.NewLiveRun(h.Mesh, h.Board, engine.Events, mesh.SimOptions{
+			run = httpapi.NewLiveRun(h.Mesh, h.Board, engine.Events, mesh.SimOptions{
 				MinDuration: minDur,
 				MaxDuration: maxDur,
 				FailRate:    failRate,
 			})
+			h = h.WithLive(run)
+		}
+
+		srv := httpapi.NewServer(addr, h)
+		if serveUI && !web.Built() {
+			fmt.Println("dashboard bundle not built; run `make build-web` (the JSON API still works)")
+		}
+		fmt.Printf("api listening on %s\n", addr)
+
+		errCh := make(chan error, 1)
+		go func() { errCh <- srv.Start() }()
+
+		if run != nil {
 			run.Start(ctx, workers)
 			defer run.Stop()
-			h = h.WithLive(run)
 			fmt.Printf("live crew: %d workers, tasks take %s-%s, %.0f%% escalate\n",
 				workers, minDur, maxDur, failRate*100)
 
@@ -82,19 +100,6 @@ on the board is placed by hand.`,
 			h.Board.ReplaceWithOwners(result.Tasks, result.SessionByTask)
 			fmt.Printf("board seeded statically with %d tasks\n", len(result.Tasks))
 		}
-
-		srv := httpapi.NewServer(addr, h)
-		if serveUI {
-			if web.Built() {
-				fmt.Printf("dashboard on http://localhost%s\n", addr)
-			} else {
-				fmt.Println("dashboard bundle not built; run `make build-web` (the JSON API still works)")
-			}
-		}
-		fmt.Printf("api listening on %s\n", addr)
-
-		errCh := make(chan error, 1)
-		go func() { errCh <- srv.Start() }()
 
 		select {
 		case err := <-errCh:
