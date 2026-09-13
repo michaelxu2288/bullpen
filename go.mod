@@ -1,6 +1,6 @@
 module github.com/michaelxu2288/bullpen
 
-go 1.23.0
+go 1.21
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0
