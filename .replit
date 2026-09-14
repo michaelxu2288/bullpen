@@ -1,10 +1,10 @@
-modules = ["go-1.21"]
+modules = ["go-1.21", "nodejs-20"]
 run = "go run . server --chaos"
 entrypoint = "main.go"
 
 [deployment]
-build = ["sh", "-c", "go build -o bullpen ."]
-run = ["sh", "-c", "./bullpen server --chaos"]
+build = ["sh", "-c", "CGO_ENABLED=0 go build -trimpath -ldflags=-s -o bullpen ."]
+run = ["sh", "-c", "exec ./bullpen server --chaos"]
 deploymentTarget = "autoscale"
 
 [[ports]]
